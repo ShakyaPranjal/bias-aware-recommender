@@ -64,7 +64,8 @@ class CollaborativeModel:
         _, s, vt = svds(R, k=k, random_state=self.seed)
         order = np.argsort(s)[::-1]
         self.s = s[order]
-        self.V = vt[order].T.astype(np.float32)              # items x k
+        # rounded to float32 (as exported for the browser build), maths in float64
+        self.V = vt[order].T.astype(np.float32).astype(np.float64)  # items x k
         # item-item similarity in latent space (scaled by singular values)
         F = self.V * np.sqrt(self.s)[None, :]
         norms = np.linalg.norm(F, axis=1, keepdims=True)
@@ -72,7 +73,7 @@ class CollaborativeModel:
         return self
 
     def raw_scores(self, idx: np.ndarray, ratings: np.ndarray) -> np.ndarray:
-        r = np.zeros(self.V.shape[0], dtype=np.float32)
+        r = np.zeros(self.V.shape[0])
         r[idx] = ratings
         return (r @ self.V) @ self.V.T
 

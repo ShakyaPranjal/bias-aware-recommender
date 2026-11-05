@@ -53,11 +53,30 @@ def comfort_zone_index(vectors: np.ndarray) -> float:
     return float(np.linalg.norm(vectors - c, axis=1).mean())
 
 
+def desc_order(x: np.ndarray) -> np.ndarray:
+    """Indices sorting ``x`` high to low; ties keep their original order."""
+    return np.argsort(-np.asarray(x, dtype=float), kind="stable")
+
+
+def rankdata(a: np.ndarray) -> np.ndarray:
+    """Ranks starting at 1, ties get the average of their ranks."""
+    a = np.asarray(a, dtype=float)
+    order = np.argsort(a, kind="stable")
+    ranks = np.empty(len(a))
+    i = 0
+    while i < len(a):
+        j = i
+        while j + 1 < len(a) and a[order[j + 1]] == a[order[i]]:
+            j += 1
+        ranks[order[i:j + 1]] = (i + j) / 2 + 1
+        i = j + 1
+    return ranks
+
+
 def _spearman(a: np.ndarray, b: np.ndarray) -> float:
     if len(a) < 3 or np.std(a) == 0 or np.std(b) == 0:
         return 0.0
-    ra, rb = np.argsort(np.argsort(a)), np.argsort(np.argsort(b))
-    return float(np.corrcoef(ra, rb)[0, 1])
+    return float(np.corrcoef(rankdata(a), rankdata(b))[0, 1])
 
 
 @dataclass
@@ -110,7 +129,7 @@ class BiasEngine:
         dominant = T.argmax(axis=1)
         theme_counts = np.bincount(dominant, minlength=T.shape[1])
         theme_conc = 1 - normalized_entropy(theme_counts, T.shape[1])
-        top_themes = np.argsort(theme_counts)[::-1][:3]
+        top_themes = desc_order(theme_counts)[:3]
         inside = np.isin(dominant, top_themes)
         gap = 0.0
         if inside.any() and (~inside).any():
@@ -160,7 +179,9 @@ class BiasEngine:
         pop = self.population.get(key)
         if pop is None or len(pop) == 0:
             return 0.5
-        p = np.searchsorted(pop, value, side="right") / len(pop)
+        # small tolerance: a viewer is part of the population they are ranked
+        # against, so their own value must count as "at or below" it
+        p = np.searchsorted(pop, value + 1e-9, side="right") / len(pop)
         return float(1 - p) if key == "comfort_zone" else float(p)
 
     def typical(self, key: str) -> float:

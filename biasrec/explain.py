@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .bias import desc_order
 from .nlp import EMOTIONS
 
 
@@ -58,7 +59,7 @@ class Explainer:
 
     def top_genres(self, profile, n=3) -> list[str]:
         counts = profile.details["genre_counts"]
-        order = np.argsort(counts)[::-1][:n]
+        order = desc_order(counts)[:n]
         return [self.e.features["genres"][i] for i in order if counts[i] > 0]
 
     def recommendation(self, m: int, profile, comp: dict, bias_contrib: dict,

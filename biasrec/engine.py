@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 from sklearn.decomposition import PCA
 
-from .bias import BIAS_INFO, BIAS_KEYS, BiasEngine, Profile, normalized_entropy
+from .bias import BIAS_INFO, BIAS_KEYS, BiasEngine, Profile, desc_order, normalized_entropy
 from .data import Dataset, load_dataset
 from .explain import Explainer
 from .models import CollaborativeModel, ContentModel, _minmax
@@ -54,6 +54,10 @@ class RecommenderEngine:
         self.ratings = dataset.ratings
         self.min_support = min_support
         self.features = FeatureBuilder().fit(self.movies)
+        # float32-rounded features, float64 maths: identical results in the
+        # Python API and the in-browser build (scripts/build_static.py)
+        for key in ("embedding", "themes", "genre_matrix", "valence", "emotions", "hero"):
+            self.features[key] = self.features[key].astype(np.float64)
         self.content = ContentModel(self.features["embedding"])
         self.cf = CollaborativeModel(n_factors=n_factors).fit(self.ratings, len(self.movies))
         self.bias = BiasEngine(self.features, self.movies).fit_population(self.ratings)
@@ -114,7 +118,7 @@ class RecommenderEngine:
         g = self._user_groups.get(user_id)
         if g is None:
             raise KeyError(user_id)
-        g = g.sort_values("timestamp")
+        g = g.sort_values("timestamp", kind="stable")
         return g["idx"].to_numpy(), g["rating"].to_numpy(float), g["timestamp"].to_numpy(float)
 
     def profile_for_user(self, user_id: int) -> Profile:
@@ -137,7 +141,7 @@ class RecommenderEngine:
         different raw scales (cosine vs. latent dot products) compete fairly."""
         out = np.zeros_like(x, dtype=float)
         if mask.any():
-            order = np.argsort(np.argsort(x[mask]))
+            order = np.argsort(np.argsort(x[mask], kind="stable"), kind="stable")
             out[mask] = (order + 1) / mask.sum()
         return out
 
@@ -166,7 +170,7 @@ class RecommenderEngine:
 
     def _mmr(self, score: np.ndarray, candidates: np.ndarray, k: int, lam: float) -> list[int]:
         E = self.features["embedding"]
-        pool = candidates[np.argsort(score[candidates])[::-1][:400]]
+        pool = candidates[desc_order(score[candidates])[:400]]
         if len(pool) == 0:
             return []
         s = _minmax(score[pool])
@@ -200,7 +204,7 @@ class RecommenderEngine:
         cf = self.cf.raw_scores(profile.idx, profile.ratings)
         elig = self._eligible(profile)
         cf[~elig] = -np.inf
-        return [int(i) for i in np.argsort(cf)[::-1][:k]]
+        return [int(i) for i in desc_order(cf)[:k]]
 
     # ------------------------------------------------------------ metrics
     def list_metrics(self, profile: Profile, recs: list[int]) -> dict:
@@ -291,7 +295,7 @@ class RecommenderEngine:
         rec_counts = self.features["genre_matrix"][picks].sum(axis=0) if picks else np.zeros(len(genres))
         rec_share = rec_counts / max(rec_counts.sum(), 1)
 
-        liked = profile.idx[np.argsort(profile.ratings)[::-1][:8]]
+        liked = profile.idx[desc_order(profile.ratings)[:8]]
         return {
             "profile": {
                 "n_ratings": int(len(profile.idx)),
@@ -330,7 +334,7 @@ class RecommenderEngine:
                 "centre_title": self.movies.iloc[centre]["clean_title"]}
 
     def catalog_map(self, n: int = 1500) -> list:
-        top = np.argsort(self.movies["n_ratings"].to_numpy())[::-1][:n]
+        top = desc_order(self.movies["n_ratings"].to_numpy())[:n]
         return [[round(float(self._map[i, 0]), 4), round(float(self._map[i, 1]), 4)] for i in top]
 
     # ------------------------------------------------------------- helpers
@@ -339,7 +343,7 @@ class RecommenderEngine:
         if not q:
             return []
         hits = np.where(np.char.find(self.title_index.astype(str), q) >= 0)[0]
-        hits = hits[np.argsort(self.movies["n_ratings"].to_numpy()[hits])[::-1]][:limit]
+        hits = hits[desc_order(self.movies["n_ratings"].to_numpy()[hits])][:limit]
         return [self.movie_card(int(i)) for i in hits]
 
     def featured_users(self) -> list[dict]:
