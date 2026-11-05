@@ -1,0 +1,70 @@
+{
+  "k": 10,
+  "n_users": 591,
+  "protocol": "temporal 80/20 per user, relevant = rating >= 4",
+  "results": {
+    "Popularity": {
+      "precision@10": 0.05736040609137055,
+      "recall@10": 0.05067700147841525,
+      "coverage": 0.043867502238137866,
+      "intra_list_similarity": 0.31175662635143236,
+      "novelty_bits": 1.524677539458621,
+      "genre_entropy_gain": 0.020585331738488394,
+      "bias_reduction_index": -0.09767600842817148
+    },
+    "Content-based": {
+      "precision@10": 0.018274111675126905,
+      "recall@10": 0.015560626778293299,
+      "coverage": 0.5572963294538944,
+      "intra_list_similarity": 0.8719572407743451,
+      "novelty_bits": 4.730084027334644,
+      "genre_entropy_gain": -0.025495766979260332,
+      "bias_reduction_index": -0.10869838255120033
+    },
+    "Collaborative (PureSVD)": {
+      "precision@10": 0.08003384094754652,
+      "recall@10": 0.09230187429188769,
+      "coverage": 0.311101163831692,
+      "intra_list_similarity": 0.32150651650682927,
+      "novelty_bits": 2.571702946136708,
+      "genre_entropy_gain": 0.00796590023704858,
+      "bias_reduction_index": -0.04857184978038751
+    },
+    "Hybrid (content + CF)": {
+      "precision@10": 0.06006768189509306,
+      "recall@10": 0.06287832950471287,
+      "coverage": 0.45523724261414505,
+      "intra_list_similarity": 0.7066766400325116,
+      "novelty_bits": 3.49515223064363,
+      "genre_entropy_gain": -0.01959561717720947,
+      "bias_reduction_index": -0.10367005162939348
+    },
+    "Bias-aware, exploration 0.3": {
+      "precision@10": 0.04094754653130288,
+      "recall@10": 0.04117490990236662,
+      "coverage": 0.35273052820053713,
+      "intra_list_similarity": 0.31849239730038215,
+      "novelty_bits": 3.281717469534941,
+      "genre_entropy_gain": 0.008825678887030983,
+      "bias_reduction_index": 0.20658334137854018
+    },
+    "Bias-aware, exploration 0.6": {
+      "precision@10": 0.031133671742808802,
+      "recall@10": 0.028358510704780963,
+      "coverage": 0.3084153983885407,
+      "intra_list_similarity": 0.257867013502948,
+      "novelty_bits": 3.4991866677155077,
+      "genre_entropy_gain": 0.018317161643078995,
+      "bias_reduction_index": 0.3590867842792229
+    },
+    "Bias-aware, exploration 0.9": {
+      "precision@10": 0.02284263959390863,
+      "recall@10": 0.020049184493656367,
+      "coverage": 0.26544315129811996,
+      "intra_list_similarity": 0.1868405866290107,
+      "novelty_bits": 3.832205475400213,
+      "genre_entropy_gain": 0.030012234458057608,
+      "bias_reduction_index": 0.4795143663716041
+    }
+  }
+}
