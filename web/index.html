@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bias-Aware Recommender</title>
+  <meta name="description" content="Movie recommendations that counterbalance your psychological viewing biases, with an explanation for every pick.">
+  <meta name="author" content="Pranjal Man Shakya">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='13' cy='16' r='9' fill='%232F7487'/%3E%3Ccircle cx='23' cy='12' r='5' fill='%23D4961C'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="13" cy="16" r="9" class="b-you"/><circle cx="23" cy="12" r="5" class="b-grow"/></svg>
+      <span>Bias-Aware Recommender</span>
+    </a>
+    <nav class="viewer-picker" aria-label="Choose a viewer">
+      <label for="viewer-select">Viewer</label>
+      <select id="viewer-select"></select>
+      <button class="btn btn-quiet" id="open-builder" type="button">Build my own profile</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="hero-kicker" id="viewer-name">Loading viewer…</p>
+        <h1 id="hero-title">Here is what you need to see to grow.</h1>
+        <p class="hero-lede" id="hero-lede">Your viewing history is analysed for six psychological tendencies. The recommendations push gently against them, and each one tells you why.</p>
+        <dl class="vitals" id="vitals"></dl>
+
+        <div class="explore" role="group" aria-labelledby="explore-label">
+          <div class="explore-head">
+            <span id="explore-label">How far should we push you?</span>
+            <output id="explore-out" for="exploration">Balanced</output>
+          </div>
+          <input type="range" id="exploration" min="0" max="100" value="55" aria-describedby="explore-scale">
+          <div class="explore-scale" id="explore-scale"><span>Comfort</span><span>Growth</span></div>
+          <p class="weights" id="weights" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <figure class="map-figure">
+        <div class="map-wrap"><canvas id="map" aria-label="Comfort zone map: your films, our picks and a traditional recommender's picks plotted in story space" role="img"></canvas></div>
+        <figcaption>
+          <span class="key"><i class="dot dot-you"></i>Films you've watched</span>
+          <span class="key"><i class="dot dot-grow"></i>Bias-aware picks</span>
+          <span class="key"><i class="dot dot-trad"></i>Traditional picks</span>
+          <span class="map-note">Story space: every film placed by its plot, themes, genres and era. Closer means more alike.</span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <section class="panel" aria-labelledby="bias-title">
+      <div class="panel-head">
+        <h2 id="bias-title">Your bias profile</h2>
+        <p>Each score is your percentile among 610 MovieLens viewers. 90 means the tendency is stronger than in 90% of people.</p>
+      </div>
+      <div class="bias-grid">
+        <div class="radar-wrap"><canvas id="radar" role="img" aria-label="Radar chart of bias scores"></canvas></div>
+        <ul class="bias-list" id="bias-list"></ul>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="recs-title">
+      <div class="panel-head">
+        <h2 id="recs-title">Recommended for you</h2>
+        <p><b class="role-chip role-bridge">Bridge</b> stays close to your taste, <b class="role-chip role-expand">Expand</b> opens a new side, <b class="role-chip role-stretch">Stretch</b> is a deliberate leap.</p>
+      </div>
+      <ol class="recs" id="recs"></ol>
+    </section>
+
+    <section class="panel" aria-labelledby="compare-title">
+      <div class="panel-head">
+        <h2 id="compare-title">Compared with a traditional recommender</h2>
+        <p>The same history run through plain collaborative filtering, the "more of what you like" approach.</p>
+      </div>
+      <div class="compare">
+        <table class="metrics" id="metrics"></table>
+        <div class="trad">
+          <h3>What a traditional system would show</h3>
+          <ol id="trad-list"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="fp-title">
+      <div class="panel-head">
+        <h2 id="fp-title">Genre fingerprint and emotional mix</h2>
+        <p>Share of each genre in your history, a typical viewer's, and in your recommendations.</p>
+      </div>
+      <div class="fp-grid">
+        <div class="fp-wrap"><canvas id="fingerprint" role="img" aria-label="Genre fingerprint bar chart"></canvas></div>
+        <div>
+          <h3>Emotions in what you watch</h3>
+          <ul class="emotions" id="emotions"></ul>
+          <h3>Films you rated highest</h3>
+          <ul class="favs" id="favs"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Built by <a href="https://github.com/ShakyaPranjal">Pranjal Man Shakya</a>. Data: MovieLens (GroupLens Research) with TMDB plot overviews.</p>
+  </footer>
+
+  <dialog id="builder" aria-labelledby="builder-title">
+    <form method="dialog" class="builder-inner" id="builder-form">
+      <div class="builder-head">
+        <h2 id="builder-title">Build your own profile</h2>
+        <button class="btn btn-icon" value="close" aria-label="Close">✕</button>
+      </div>
+      <p class="builder-help">Rate at least 5 films you've seen. More films and a mix of ratings give a sharper profile.</p>
+      <label class="search-label" for="movie-search">Find a film</label>
+      <input type="search" id="movie-search" placeholder="Try “Inception” or “Toy Story”" autocomplete="off">
+      <ul class="search-results" id="search-results" role="listbox" aria-label="Search results"></ul>
+      <h3 class="rated-head">Your ratings <span id="rated-count">0</span></h3>
+      <ul class="rated" id="rated"></ul>
+      <div class="builder-actions">
+        <button class="btn btn-quiet" type="button" id="clear-ratings">Clear all</button>
+        <button class="btn btn-primary" type="button" id="analyze-me" disabled>Analyse my profile</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/static/vendor/chart.umd.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
