@@ -1,0 +1,10 @@
+line-length = 120
+target-version = "py310"
+
+[lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = ["B008", "B905"]
+
+[lint.per-file-ignores]
+"tests/*" = ["B023"]
+"biasrec/explain.py" = ["E501"]  # explanation sentence templates
