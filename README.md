@@ -23,6 +23,7 @@ Most recommenders optimise for similarity, which traps people in filter bubbles:
 - **Psychological dashboard**: bias radar, comfort-zone map of "story space" (t-SNE), genre fingerprint, emotional mix
 - **Side-by-side comparison** with a traditional recommender on the same history
 - **Cold start**: build your own profile by rating a handful of films; no account needed
+- **Runs without a server**: a static build exports the trained model and runs the same inference in the browser (verified identical to the Python engine by a parity test), so it can be hosted on GitHub Pages or any static host
 - Offline evaluation script, test suite, Docker image and CI
 
 ![Recommendations with explanations](docs/recommendations.png)
@@ -74,12 +75,12 @@ Offline evaluation on MovieLens ml-latest-small with a temporal 80/20 split per 
 | Popularity | 0.057 | 0.051 | 0.044 | 0.312 | 1.525 | +0.021 | -0.098 |
 | Content-based | 0.018 | 0.016 | 0.557 | 0.872 | 4.730 | -0.025 | -0.109 |
 | Collaborative (PureSVD) | 0.080 | 0.092 | 0.311 | 0.322 | 2.572 | +0.008 | -0.049 |
-| Hybrid (content + CF) | 0.060 | 0.063 | 0.455 | 0.707 | 3.495 | -0.020 | -0.104 |
-| **Bias-aware, exploration 0.3** | 0.041 | 0.041 | 0.353 | 0.318 | 3.282 | +0.009 | **+0.207** |
-| **Bias-aware, exploration 0.6** | 0.031 | 0.028 | 0.308 | 0.258 | 3.499 | +0.018 | **+0.359** |
-| **Bias-aware, exploration 0.9** | 0.023 | 0.020 | 0.265 | **0.187** | 3.832 | **+0.030** | **+0.480** |
+| Hybrid (content + CF) | 0.060 | 0.063 | 0.455 | 0.707 | 3.495 | -0.020 | -0.105 |
+| **Bias-aware, exploration 0.3** | 0.041 | 0.043 | 0.350 | 0.318 | 3.282 | +0.009 | **+0.200** |
+| **Bias-aware, exploration 0.6** | 0.031 | 0.030 | 0.306 | 0.258 | 3.507 | +0.018 | **+0.359** |
+| **Bias-aware, exploration 0.9** | 0.024 | 0.021 | 0.261 | **0.186** | 3.831 | **+0.030** | **+0.475** |
 
-**Reading the table.** Every traditional model has a *negative* Bias Reduction Index: its recommendations are even more biased than the user's own history, which is the filter-bubble effect in numbers. The bias-aware model turns that positive, and the effect grows with the exploration setting, alongside more varied lists (lower intra-list similarity), more novel picks and broader genre coverage.
+**Reading the table.** Every traditional model has a *negative* Bias Reduction Index: its recommendations are even more biased than the user's own history, which is the filter-bubble effect in numbers. The bias-aware model turns that positive (+0.20 to +0.48), and the effect grows with the exploration setting, alongside more varied lists (lower intra-list similarity), more novel picks and broader genre coverage.
 
 The cost is lower Precision@10. That is expected: offline precision rewards predicting what a user would have watched anyway, which is exactly the behaviour this system is designed to challenge. The slider makes the trade-off explicit, so a viewer can choose how far to be pushed.
 
@@ -109,11 +110,20 @@ docker build -t bias-aware-recommender .
 docker run -p 8000:8000 bias-aware-recommender
 ```
 
+### Static build (no server)
+
+```bash
+python scripts/build_static.py              # trains the model and writes dist/ (~9 MB)
+python -m http.server -d dist 8080          # open http://localhost:8080
+```
+
+`dist/` is a self-contained site: upload it to GitHub Pages, Netlify or any static host. The model is trained in Python and exported to `dist/data/`, and `web/engine.js` runs the same inference in the browser. `tests/test_static_parity.py` checks that both engines return identical recommendations, scores and explanations.
+
 ### Tests and evaluation
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q                          # runs on a synthetic dataset, no download needed
+pytest -q                          # runs on a synthetic dataset, no download needed (parity test needs Node.js)
 python scripts/evaluate.py         # writes reports/evaluation.md and .json
 ```
 
@@ -148,8 +158,8 @@ biasrec/
   explain.py   explanation layer
   engine.py    hybrid scoring, MMR re-ranking, metrics, story-space map
   api.py       FastAPI app
-web/           dashboard (HTML, CSS, vanilla JS + Chart.js)
-scripts/       download_data.py, evaluate.py
+web/           dashboard (HTML, CSS, vanilla JS + Chart.js) and engine.js (in-browser inference)
+scripts/       download_data.py, evaluate.py, build_static.py
 tests/         pytest suite on synthetic data
 reports/       evaluation results
 ```

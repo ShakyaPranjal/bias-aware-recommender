@@ -2,6 +2,7 @@
 data/raw/*
 !data/raw/.gitkeep
 data/cache/
+dist/
 
 __pycache__/
 *.py[cod]

@@ -22,6 +22,10 @@
 
   // ---------------------------------------------------------------- api
   async function api(path, opts) {
+    if (window.BiasRecStatic) {            // static build: the engine runs in this page
+      try { return await window.BiasRecStatic.request(path, opts); }
+      catch (err) { throw new Error(err.message || "Something went wrong in the recommender."); }
+    }
     const res = await fetch(path, opts);
     if (!res.ok) {
       let msg = `Request failed (${res.status})`;
@@ -296,6 +300,7 @@
     $("#explore-out").textContent = exploreLabel(state.exploration);
     $("#exploration").addEventListener("input", onExplore);
 
+    if (window.BiasRecStatic) $("#viewer-name").textContent = "Loading the recommender model (about 9 MB)…";
     try {
       const [meta, map] = await Promise.all([api("/api/meta"), api("/api/map?n=1500")]);
       state.featured = meta.featured_users;
@@ -310,7 +315,9 @@
       }
     } catch (err) {
       $("#viewer-name").textContent = "The recommender isn't running.";
-      $("#hero-lede").textContent = `${err.message}. Start the server with "uvicorn biasrec.api:app" and reload.`;
+      $("#hero-lede").textContent = window.BiasRecStatic
+        ? `${err.message}. Check your connection and reload the page.`
+        : `${err.message}. Start the server with "uvicorn biasrec.api:app" and reload.`;
       return;
     }
 
