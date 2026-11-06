@@ -2,7 +2,7 @@
 
 **A movie recommender that detects the psychological biases in your viewing history and recommends films that counterbalance them, with a plain-language reason for every pick.**
 
-[![CI](https://github.com/ShakyaPranjal/bias-aware-recommender/actions/workflows/ci.yml/badge.svg)](https://github.com/ShakyaPranjal/bias-aware-recommender/actions/workflows/ci.yml)
+[![CI](https://github.com/pranjalmanshakya/bias-aware-recommender/actions/workflows/ci.yml/badge.svg)](https://github.com/pranjalmanshakya/bias-aware-recommender/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -93,7 +93,7 @@ The cost is lower Precision@10. That is expected: offline precision rewards pred
 Requires Python 3.10+.
 
 ```bash
-git clone https://github.com/ShakyaPranjal/bias-aware-recommender.git
+git clone https://github.com/pranjalmanshakya/bias-aware-recommender.git
 cd bias-aware-recommender
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -186,6 +186,6 @@ reports/       evaluation results
 ## Author
 
 **Pranjal Man Shakya**, Department of Mathematics, Kathmandu University
-GitHub: [@ShakyaPranjal](https://github.com/ShakyaPranjal)
+GitHub: [@ShakyaPranjal](https://github.com/pranjalmanshakya)
 
 Released under the [MIT License](LICENSE).
