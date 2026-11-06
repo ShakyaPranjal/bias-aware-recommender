@@ -186,6 +186,6 @@ reports/       evaluation results
 ## Author
 
 **Pranjal Man Shakya**, Department of Mathematics, Kathmandu University
-GitHub: [@ShakyaPranjal](https://github.com/pranjalmanshakya)
+GitHub: [@pranjalmanshakya](https://github.com/pranjalmanshakya)
 
 Released under the [MIT License](LICENSE).
